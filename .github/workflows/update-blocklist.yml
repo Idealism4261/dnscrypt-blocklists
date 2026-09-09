@@ -26,13 +26,16 @@ jobs:
 
       - name: Commit changes
         run: |
+                - name: Commit changes
+        run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          if git diff --quiet -- blocked-names.txt; then
-            echo "Blocklist is unchanged."
-          else
+          if [[ -n "$(git status --porcelain -- blocked-names.txt)" ]]; then
+            echo "Blocklist changed or is newly generated."
             git add blocked-names.txt
             git commit -m "Update combined DNSCrypt blocklist"
             git push
+          else
+            echo "Blocklist is unchanged."
           fi
