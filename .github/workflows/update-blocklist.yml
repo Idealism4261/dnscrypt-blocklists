@@ -1,0 +1,38 @@
+name: Update DNSCrypt Blocklist
+
+on:
+  schedule:
+    - cron: '30 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-blocklist:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Build combined blocklist
+        run: python scripts/build_blocklist.py
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet -- blocked-names.txt; then
+            echo "Blocklist is unchanged."
+          else
+            git add blocked-names.txt
+            git commit -m "Update combined DNSCrypt blocklist"
+            git push
+          fi
